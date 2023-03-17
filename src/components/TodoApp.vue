@@ -18,9 +18,9 @@
             :class="{completed: todoItem.completed}"
           >
             <div class="view">
-              <input class="toggle" type="checkbox" :checked="todoItem.completed" @change.prevent="store.changeCompletion(index)"/>
+              <input class="toggle" type="checkbox" :checked="todoItem.completed" @change.prevent="changeCompletion(index)"/>
               <label>{{ todoItem.text }}</label>
-              <button class="destroy"></button>
+              <button class="destroy" @click="deleteTodo(index)"></button>
             </div>
             <input class="edit" value="Rule the web" />
           </li>
@@ -43,7 +43,7 @@
           </li>
         </ul>
         <!-- Hidden if no completed items are left ↓ -->
-        <button class="clear-completed">Clear completed</button>
+        <button class="clear-completed" @click="clearCompleted">Clear completed</button>
       </footer>
     </section>
     <footer class="info">
@@ -53,43 +53,28 @@
   </div>
 </template>
 
-<script setup lang="ts">
-  import { computed, watch, onMounted } from 'vue'
+<script lang="ts">
+  import { mapState, mapActions } from 'pinia'
   import { useRoute } from 'vue-router'
-
   import { useTodoStore } from '@/stores/todo'
 
   const route = useRoute()
-  const store = useTodoStore()
 
-  watch(route, () => {
-    if (route.hash) {
-      store.visibility = route.hash.substring(1)
-    } else {
-      store.visibility = 'all'
+  export default {
+    computed: {
+      ...mapState(useTodoStore, ['todoList', 'visibility', 'visibleTodoList', 'todosCount']),
+      route() {
+        return this.$route
+      }
+    },
+    methods: {
+      ...mapActions(useTodoStore, ['changeCompletion', 'changeText', 'changeVisibility', 'deleteTodo', 'clearCompleted'])
+    },
+    watch: {
+      route(newValue) {
+        this.changeVisibility(newValue.hash.substring(1))
+      }
     }
-  })
+  }
 
-  onMounted(() => {
-  })
-
-  const visibleTodoList = computed(() => {
-    let newTodoList;
-
-    switch (store.visibility) {
-      case 'completed':
-        newTodoList = store.todoList.filter((todoItem) => todoItem.completed === true )
-        break
-      case 'active':
-        newTodoList = store.todoList.filter((todoItem) => todoItem.completed === false )
-        break
-      default:
-        newTodoList = store.todoList;
-        break
-    }
-
-    return newTodoList;
-  })
-
-  const todosCount = computed(() => store.todoList.filter((todoItem) => todoItem.completed === false ).length)
 </script>
