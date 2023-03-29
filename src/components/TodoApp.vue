@@ -3,7 +3,7 @@
     <section class="todoapp">
       <header class="header">
         <h1>todos</h1>
-        <input class="new-todo" placeholder="What needs to be done?" autofocus />
+        <input class="new-todo" placeholder="What needs to be done?" autofocus v-model="newTodo" @keyup.enter="addTodoKeyupEnter" />
       </header>
       <!-- This section should be hidden by default and shown when there are todos -->
       <section class="main">
@@ -55,24 +55,50 @@
 
 <script lang="ts">
   import { mapState, mapActions } from 'pinia'
-  import { useRoute } from 'vue-router'
   import { useTodoStore } from '@/stores/todo'
 
-  const route = useRoute()
-
   export default {
+    data() {
+      return {
+        newTodo: ''
+      }
+    },
     computed: {
-      ...mapState(useTodoStore, ['todoList', 'visibility', 'visibleTodoList', 'todosCount']),
+      ...mapState(useTodoStore, [
+        'todoList',
+        'visibility',
+        'visibleTodoList',
+        'todosCount'
+      ]),
       route() {
         return this.$route
       }
     },
+    mounted() {
+      this.updateLocalData()
+    },
     methods: {
-      ...mapActions(useTodoStore, ['changeCompletion', 'changeText', 'changeVisibility', 'deleteTodo', 'clearCompleted'])
+      ...mapActions(useTodoStore, [
+        'changeCompletion',
+        'changeText',
+        'changeVisibility',
+        'addTodo',
+        'deleteTodo',
+        'clearCompleted',
+        'saveLocalData',
+        'updateLocalData'
+      ]),
+      addTodoKeyupEnter() {
+        this.addTodo(this.newTodo)
+        this.newTodo = ''
+      }
     },
     watch: {
       route(newValue) {
         this.changeVisibility(newValue.hash.substring(1))
+      },
+      todoList() {
+        this.saveLocalData()
       }
     }
   }

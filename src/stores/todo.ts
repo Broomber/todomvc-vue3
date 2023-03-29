@@ -38,21 +38,37 @@ export const useTodoStore = defineStore('todo', {
     changeCompletion(index: number) {
       this.todoList[index].completed = !this.todoList[index].completed
     },
+
+    addTodo(text: string) {
+      this.todoList = [...this.todoList, {text: text, completed: false}];
+    },
+
     deleteTodo(index: number) {
       this.todoList = this.todoList.filter((todoItem, todoIndex) => todoIndex !== index )
     },
+
     clearCompleted() {
       this.todoList = this.todoList.filter((todoItem) => todoItem.completed === false )
     },
+
     changeText(index: number, text: string) {
       this.todoList[index].text = text
     },
+
     changeVisibility(visibility: string) {      
       if (visibility.length > 0) {
         this.visibility = visibility
       } else {
         this.visibility = visibility = 'all'
       }
+    },
+
+    saveLocalData() {
+      localStorage.setItem("todo-list", JSON.stringify(this.todoList));
+    },
+
+    updateLocalData() {
+      this.todoList = JSON.parse(localStorage.getItem("todo-list") || '[]');
     }
   },
 })
