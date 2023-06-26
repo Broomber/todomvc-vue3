@@ -4,7 +4,9 @@
 
 Приложение создано на основе шаблона [TodoMVC App Template](https://github.com/tastejs/todomvc-app-template)
 
-## Демо на [GitHub Pages](https://broomber.github.io/todomvc-vue3/)
+## Демо
+
+[GitHub Pages](https://broomber.github.io/todomvc-vue3/)
 
 ## Стек:
 
