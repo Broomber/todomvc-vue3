@@ -2,7 +2,9 @@
 
 ## О проекте
 
-Приложение сознано на основе шаблона [TodoMVC App Template](https://github.com/tastejs/todomvc-app-template)
+Приложение создано на основе шаблона [TodoMVC App Template](https://github.com/tastejs/todomvc-app-template)
+
+## Демо на [GitHub Pages](https://broomber.github.io/todomvc-vue3/)
 
 ## Стек:
 
