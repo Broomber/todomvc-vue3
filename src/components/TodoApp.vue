@@ -3,49 +3,68 @@
     <section class="todoapp">
       <header class="header">
         <h1>todos</h1>
-        <input class="new-todo" placeholder="What needs to be done?" autofocus v-model="newTodo" @keyup.enter="addTodoKeyupEnter" />
+        <input
+          class="new-todo"
+          placeholder="What needs to be done?"
+          autofocus
+          v-model="newTodoText"
+          @keyup.enter="addTodoEvent()"
+        />
       </header>
-      <!-- This section should be hidden by default and shown when there are todos -->
+
       <section class="main">
         <input id="toggle-all" class="toggle-all" type="checkbox" />
         <label for="toggle-all">Mark all as complete</label>
         <ul class="todo-list">
-          <!-- These are here just to show the structure of the list items -->
-          <!-- List items should get the class `editing` when editing and `completed` when marked as completed -->
           <li
-            v-for="todoItem, index in visibleTodoList"
+            v-for="(todoItem, index) in visibleTodoList"
             :key="index"
-            :class="{completed: todoItem.completed}"
+            :class="{ completed: todoItem.completed, editing: todoItem == editedTodo }"
           >
             <div class="view">
-              <input class="toggle" type="checkbox" :checked="todoItem.completed" @change.prevent="changeCompletion(index)"/>
-              <label>{{ todoItem.text }}</label>
+              <input
+                class="toggle"
+                type="checkbox"
+                :checked="todoItem.completed"
+                @change.prevent="editTodo(index, todoItem.text, !todoItem.completed)"
+              />
+              <label @dblclick="startEditing(index)">{{ todoItem.text }}</label>
               <button class="destroy" @click="deleteTodo(index)"></button>
             </div>
-            <input class="edit" value="Rule the web" />
+            <input
+              class="edit"
+              v-model="editedTodoText"
+              @keyup.enter="editTodoEvent(index, editedTodoText, todoItem.completed)"
+              @keyup.esc="cancelEditing"
+              @blur="cancelEditing"
+            />
           </li>
         </ul>
       </section>
-      <!-- This footer should be hidden by default and shown when there are todos -->
+
       <footer class="footer">
-        <!-- This should be `0 items left` by default -->
-        <span class="todo-count"><strong>{{ todosCount }}</strong> item left</span>
-        <!-- Remove this if you don't implement routing -->
+        <span class="todo-count"
+          ><strong>{{ todosCount }}</strong> item left</span
+        >
         <ul class="filters">
           <li>
-            <RouterLink :class="{selected: $route.hash === ''}" to="/">All</RouterLink>
+            <RouterLink :class="{ selected: $route.hash === '' }" to="/"> All </RouterLink>
           </li>
           <li>
-            <RouterLink :class="{selected: $route.hash === '#active'}" to="/#active">Active</RouterLink>
+            <RouterLink :class="{ selected: $route.hash === '#active' }" to="/#active">
+              Active
+            </RouterLink>
           </li>
           <li>
-            <RouterLink :class="{selected: $route.hash === '#completed'}" to="/#completed">Completed</RouterLink>
+            <RouterLink :class="{ selected: $route.hash === '#completed' }" to="/#completed">
+              Completed
+            </RouterLink>
           </li>
         </ul>
-        <!-- Hidden if no completed items are left ↓ -->
         <button class="clear-completed" @click="clearCompleted">Clear completed</button>
       </footer>
     </section>
+
     <footer class="info">
       <p>Double-click to edit a todo</p>
       <p>Template by <a href="http://sindresorhus.com">Sindre Sorhus</a></p>
@@ -54,53 +73,70 @@
 </template>
 
 <script lang="ts">
-  import { mapState, mapActions } from 'pinia'
-  import { useTodoStore } from '@/stores/todo'
+import { mapState, mapActions } from 'pinia'
+import { useTodoStore } from '@/stores/todo'
 
-  export default {
-    data() {
-      return {
-        newTodo: ''
+import type * as interfaces from '../interfaces/app.interfaces'
+
+export default {
+  data() {
+    return {
+      newTodoText: '',
+      editedTodoText: '',
+      editedTodo: null as interfaces.TodoItem | null
+    }
+  },
+  computed: {
+    ...mapState(useTodoStore, ['todoList', 'visibility', 'visibleTodoList', 'todosCount']),
+    route() {
+      return this.$route
+    }
+  },
+  mounted() {
+    this.updateLocalData()
+  },
+  methods: {
+    ...mapActions(useTodoStore, [
+      'addTodo',
+      'editTodo',
+      'deleteTodo',
+      'changeVisibility',
+      'clearCompleted',
+      'saveLocalData',
+      'updateLocalData'
+    ]),
+    addTodoEvent() {
+      this.addTodo(this.newTodoText)
+      this.newTodoText = ''
+    },
+    editTodoEvent(index: number, text: string, completed: boolean) {
+      if (text.length === 0) {
+        this.deleteTodo(index)
+      } else {
+        this.editTodo(index, text, completed)
       }
+
+      this.cancelEditing()
     },
-    computed: {
-      ...mapState(useTodoStore, [
-        'todoList',
-        'visibility',
-        'visibleTodoList',
-        'todosCount'
-      ]),
-      route() {
-        return this.$route
-      }
+    startEditing(index: number) {
+      this.editedTodo = this.todoList[index]
+      this.editedTodoText = this.todoList[index].text
     },
-    mounted() {
-      this.updateLocalData()
+    cancelEditing() {
+      this.editedTodo = null
+      this.editedTodoText = ''
+    }
+  },
+  watch: {
+    route(newValue) {
+      this.changeVisibility(newValue.hash.substring(1))
     },
-    methods: {
-      ...mapActions(useTodoStore, [
-        'changeCompletion',
-        'changeText',
-        'changeVisibility',
-        'addTodo',
-        'deleteTodo',
-        'clearCompleted',
-        'saveLocalData',
-        'updateLocalData'
-      ]),
-      addTodoKeyupEnter() {
-        this.addTodo(this.newTodo)
-        this.newTodo = ''
-      }
-    },
-    watch: {
-      route(newValue) {
-        this.changeVisibility(newValue.hash.substring(1))
-      },
-      todoList() {
+    todoList: {
+      handler() {
         this.saveLocalData()
-      }
+      },
+      deep: true
     }
   }
-
+}
 </script>

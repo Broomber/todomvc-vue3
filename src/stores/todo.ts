@@ -1,22 +1,21 @@
 import { defineStore } from 'pinia'
 
-interface todoItem {
-  text: string,
-  completed: boolean
-}
+import type * as interfaces from '../interfaces/app.interfaces'
 
 export const useTodoStore = defineStore('todo', {
   state: () => ({ 
     todoList: [
-      { text: '1', completed: true },
-      { text: '2', completed: false },
-      { text: '3', completed: false },
-    ] as todoItem[],
-    visibility: 'all'
+      { text: 'Vue 3', completed: true },
+      { text: 'Pinia', completed: true },
+      { text: 'Vue Router', completed: true },
+      { text: 'TypeScript', completed: true },
+    ] as interfaces.TodoItem[],
+    visibility: 'all',
   }),
   getters: {
     visibleTodoList: (state) => {
-      let newTodoList;
+      let newTodoList
+      
       switch (state.visibility) {
         case 'completed':
           newTodoList = state.todoList.filter((todoItem) => todoItem.completed === true )
@@ -25,36 +24,32 @@ export const useTodoStore = defineStore('todo', {
           newTodoList = state.todoList.filter((todoItem) => todoItem.completed === false )
           break
         default:
-          newTodoList = state.todoList;
+          newTodoList = state.todoList
           break
       }
-      return newTodoList;
+
+      return newTodoList
     },
     todosCount: (state) => {
       return state.todoList.filter((todoItem) => todoItem.completed === false ).length
     }
   },
   actions: {
-    changeCompletion(index: number) {
-      this.todoList[index].completed = !this.todoList[index].completed
-    },
-
     addTodo(text: string) {
-      this.todoList = [...this.todoList, {text: text, completed: false}];
+      this.todoList = [...this.todoList, {text: text, completed: false}]
     },
-
     deleteTodo(index: number) {
       this.todoList = this.todoList.filter((todoItem, todoIndex) => todoIndex !== index )
     },
-
+    editTodo(index: number, text: string, completed: boolean) {
+      this.todoList[index] = {
+        text: text,
+        completed: completed
+      }
+    },
     clearCompleted() {
       this.todoList = this.todoList.filter((todoItem) => todoItem.completed === false )
     },
-
-    changeText(index: number, text: string) {
-      this.todoList[index].text = text
-    },
-
     changeVisibility(visibility: string) {      
       if (visibility.length > 0) {
         this.visibility = visibility
@@ -62,13 +57,15 @@ export const useTodoStore = defineStore('todo', {
         this.visibility = visibility = 'all'
       }
     },
-
     saveLocalData() {
-      localStorage.setItem("todo-list", JSON.stringify(this.todoList));
+      localStorage.setItem("todo-list", JSON.stringify(this.todoList))
     },
-
     updateLocalData() {
-      this.todoList = JSON.parse(localStorage.getItem("todo-list") || '[]');
+      const localData = JSON.parse(localStorage.getItem("todo-list") || '[]')
+
+      if (localData.length > 0) {
+        this.todoList = localData
+      }
     }
   },
 })
